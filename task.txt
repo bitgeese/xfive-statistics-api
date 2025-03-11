@@ -1,0 +1,54 @@
+Task: Implement a Data Import and API for Statistics
+Overview
+You are tasked with creating a Django application that processes a CSV file containing demographic data and provides a REST API to interact with the imported data. The CSV file contains data on persons with citizenship from countries other than the EU, EFTA, or EU candidate countries in Ireland. Your goal is to import this data, store it in the database using best practices, and create a simple API to view and filter the data. Assume that, at a later date, data for other years can be imported.
+Dataset Information
+You will be working with the following CSV file from European data portal:
+CSV Dataset (copy on our Drive in case original is not working)
+The dataset contains various columns, such as:
+Year: The year the data refers to.
+Age Group: The age group for the statistics (e.g., "All ages", "5 - 9 years").
+Sex: The gender (e.g., "Male", "Female", "Both sexes").
+Human Development Index: The HDI category (e.g., "High Human Development Index").
+Value: The number of persons matching the demographic described in the row.
+
+Part 1: Model Preparation
+Create the model to store the necessary data from the CSV file.
+Avoid data duplication. Statistics for certain categories (e.g., "All ages", "Both sexes" or “Human Development Index (HDI) - All ratings”) are aggregates of more specific categories. Do not store the aggregate values directly in the database; instead, you should calculate them dynamically when needed.
+
+
+Part 2: CSV Import
+Create a way to import the data from the provided CSV file into the database.
+Ensure data integrity and avoid unnecessary duplication by carefully considering how to handle aggregated statistics.
+You should skip any rows with missing or invalid data and output a log of any such rows during the import.
+The import output should contain:
+The number of successfully imported entries.
+Any issues encountered during the import (e.g., missing required fields).
+
+Part 3: Create a List View with Filtering and Aggregation
+Create a list API view that returns the data in JSON format. The view should:
+Accept the following query parameters to filter the results:
+year
+age group
+sex
+Human Development Index.
+Return aggregated statistics:
+If returned results are for both sexes, there should be additional values computed and shown for each entry indicating the total count for both sexes.
+Example: If the user filters by age_group="20 - 24 years" and hd_index="High Human Development Index", the API should return:
+The count of persons for both sexes in the given age group and HDI.
+The individual counts for sex="Male" and sex="Female".
+
+Part 4: Full-stack bonus question 
+Surprise us with FE data display/visualisation using the created API.
+
+Deliverables
+Code:
+Simple Django project setup with appropriate Python requirements management.
+Data model with appropriate fields.
+A way to import data from a CSV file.
+DRF serializers and views for listing data with filtering and aggregation.
+Documentation:
+Provide instructions for running the import and testing the API.
+
+How to Submit
+Please submit your code via GitHub/GitLab/Bitbucket/etc. private repository and share it with Urszula Wielgosz (urszula.wielgosz@xfive.co). If you prefer, we can set up a space for you in our GitLab - please reach out to Urszula via email to arrange that. 
+If your profile doesn’t contain first & last name, please also send a separate email with your name and repo link, so that we know whose code we’re looking at.
