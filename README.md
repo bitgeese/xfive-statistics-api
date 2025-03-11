@@ -17,6 +17,8 @@ This project processes CSV data containing demographic information about non-EU/
 - Django 5.1
 - Django REST Framework
 - Poetry for dependency management
+- Pandas for data processing
+- Ruff for code linting and formatting
 
 ## Getting Started
 
@@ -37,20 +39,35 @@ This project processes CSV data containing demographic information about non-EU/
    ```
    poetry install
    ```
-
-3. Activate the virtual environment:
+   
+   or use the Makefile:
    ```
-   poetry shell
+   make install
    ```
 
-4. Run database migrations:
+3. Run database migrations:
    ```
    python manage.py migrate
+   ```
+   
+   or use the Makefile:
+   ```
+   make migrate
+   ```
+
+4. Create a superuser (optional but recommended):
+   ```
+   make create-superuser
    ```
 
 5. Start the development server:
    ```
    python manage.py runserver
+   ```
+   
+   or use the Makefile:
+   ```
+   make dev-server
    ```
 
 ## Data Import
@@ -59,6 +76,12 @@ The application can import demographic data from CSV files:
 
 ```
 python manage.py import_csv [path-to-csv-file]
+```
+
+or use the Makefile:
+
+```
+make import-data CSV=path/to/data.csv
 ```
 
 The import process will:
@@ -87,10 +110,33 @@ API documentation is available via Swagger UI:
 
 ## Development
 
+### Available Make Commands
+
+This project includes a Makefile with useful commands:
+
+- `make help` - Display available commands
+- `make setup` - Initial project setup (install deps + migrate)
+- `make install` - Install dependencies with Poetry
+- `make migrate` - Run database migrations
+- `make dev-server` - Run development server
+- `make lint` - Check code with Ruff
+- `make format` - Format code with Ruff
+- `make test` - Run tests
+- `make test-cov` - Run tests with coverage
+- `make clean` - Remove Python cache files
+- `make import-data CSV=file.csv` - Import CSV data
+- `make create-superuser` - Create a Django superuser
+
 ### Running Tests
 
 ```
-pytest
+make test
+```
+
+For test coverage:
+
+```
+make test-cov
 ```
 
 ### Code Quality
@@ -98,15 +144,15 @@ pytest
 This project uses Ruff for linting and code formatting:
 
 ```
-ruff check .
-ruff format .
+make lint     # Check code quality
+make format   # Format code
 ```
 
 ## Project Structure
 
 ```
 xfive/                     # Main project directory
-├── xfive/                 # Project configuration
+├── data_statistics/       # Project configuration
 ├── demographics/          # Main app for demographic data
 │   ├── models.py          # Data models
 │   ├── serializers.py     # DRF serializers
@@ -115,6 +161,7 @@ xfive/                     # Main project directory
 │   │   └── commands/      # Contains import_csv command
 ├── data/                  # Storage for CSV files
 ├── tests/                 # Project tests
+├── Makefile               # Common development commands
 ├── pyproject.toml         # Project dependencies
 └── README.md              # This file
 ```
