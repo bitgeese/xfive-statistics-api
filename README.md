@@ -183,6 +183,23 @@ Features:
 
 ## Development
 
+### Managing Dependencies
+
+If you're using Poetry for development and need to update the lock file:
+
+```bash
+make lock
+```
+
+This regenerates the poetry.lock file from pyproject.toml without updating dependencies.
+
+To add a new dependency:
+
+```bash
+poetry add package-name
+make lock  # Regenerate the lock file
+```
+
 ### Running Tests
 
 Execute the test suite:

@@ -1,4 +1,4 @@
-.PHONY: help setup install migrate dev-server test test-cov test-cov-html lint format import-data import-url show-stats clean create-superuser docker-build docker-up docker-down docker-exec docker-test docker-prod-build docker-prod-up docker-prod-down docker-setup docker-prod-setup
+.PHONY: help setup install migrate dev-server test test-cov test-cov-html lint format import-data import-url show-stats clean create-superuser docker-build docker-up docker-down docker-exec docker-test docker-prod-build docker-prod-up docker-prod-down docker-setup docker-prod-setup lock
 
 PYTHON = poetry run python
 MANAGE = $(PYTHON) manage.py
@@ -7,6 +7,7 @@ help:
 	@echo "Available commands:"
 	@echo "  make setup           - Interactive setup wizard (recommended)"
 	@echo "  make install         - Install dependencies with Poetry"
+	@echo "  make lock            - Regenerate poetry.lock file from pyproject.toml"
 	@echo "  make migrate         - Run database migrations"
 	@echo "  make dev-server      - Run development server"
 	@echo "  make test            - Run tests"
@@ -34,6 +35,10 @@ setup:
 	@echo "Running setup wizard..."
 	@chmod +x setup.sh
 	./setup.sh
+
+lock:
+	@echo "Regenerating poetry.lock file..."
+	poetry lock --no-update
 
 install:
 	@echo "Installing dependencies..."
