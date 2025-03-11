@@ -4,7 +4,6 @@ Views for the demographics app.
 This module contains API views for the demographics app models.
 """
 
-from django.shortcuts import render
 from rest_framework import viewsets
 from django_filters import rest_framework as filters
 from rest_framework.filters import OrderingFilter

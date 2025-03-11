@@ -6,7 +6,6 @@ including customizations for the Django admin interface.
 """
 
 from django.contrib import admin
-from django.db.models import Sum
 from .models import AgeGroup, Sex, HDIndex, DemographicStatistic
 
 

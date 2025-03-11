@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Dict, Type, Optional, ClassVar, List, Any, Union
+from typing import Dict, Optional, Any, Union
 
 from django.core.validators import MinValueValidator
 from django.db import models

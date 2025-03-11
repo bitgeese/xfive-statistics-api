@@ -7,7 +7,6 @@ specifically for filtering DemographicStatistic instances.
 
 import django_filters
 from django_filters import rest_framework as filters
-from django.core.exceptions import ValidationError
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from demographics.models import DemographicStatistic, AgeGroup, Sex, HDIndex

@@ -6,7 +6,7 @@ counts by categories and some sample data.
 """
 
 from django.core.management.base import BaseCommand
-from django.db.models import Count, Sum
+from django.db.models import Count
 
 from demographics.models import AgeGroup, Sex, HDIndex, DemographicStatistic
 

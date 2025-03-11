@@ -1,5 +1,4 @@
 import pytest
-from django.db.models import Sum
 
 # Mark the test as using the Django database
 pytestmark = pytest.mark.django_db
@@ -105,7 +104,7 @@ class TestDemographicStatisticMethods:
 
     def test_get_aggregated_by_all_hdi(self, setup_data):
         """Test getting statistics aggregated by all HDI categories."""
-        from demographics.models import DemographicStatistic, HDIndex
+        from demographics.models import DemographicStatistic
 
         # Create statistics for a different HDI category
         age_group = setup_data["age_groups"]["0 - 4 years"]

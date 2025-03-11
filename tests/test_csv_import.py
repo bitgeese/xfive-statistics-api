@@ -1,12 +1,8 @@
-import os
 import pytest
-import tempfile
-import httpx
 from unittest.mock import patch, MagicMock
 from pathlib import Path
 
 from django.core.management import call_command
-from django.db.models import Count
 from io import StringIO
 
 from demographics.models import AgeGroup, Sex, HDIndex, DemographicStatistic

@@ -9,9 +9,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 import json
-from demographics.models import AgeGroup, Sex, HDIndex, DemographicStatistic
-from django.db.models import Count
-from django.urls import reverse
+from demographics.models import DemographicStatistic
 from django.core.management import call_command
 import os
 import tempfile
