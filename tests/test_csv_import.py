@@ -324,7 +324,11 @@ class TestShowStatisticsCommand:
         assert "DATA SUMMARY" in output
         assert "2023" in output
         # The output should not include 2022 data
-        assert "2022" not in output.split("SAMPLE RECORDS")[1] if "SAMPLE RECORDS" in output else True
+        assert (
+            "2022" not in output.split("SAMPLE RECORDS")[1]
+            if "SAMPLE RECORDS" in output
+            else True
+        )
 
     def test_show_statistics_with_limit(self):
         """Test the show_statistics command with limit."""
@@ -335,8 +339,10 @@ class TestShowStatisticsCommand:
 
         # Check that the output contains expected information
         assert "DATA SUMMARY" in output
-        
+
         # Count the number of specific patterns that would appear once per record
-        record_count = output.count("year=") if "year=" in output else output.count("Year:")
+        record_count = (
+            output.count("year=") if "year=" in output else output.count("Year:")
+        )
         # We may need to adjust this based on the actual output format
         assert record_count <= 2  # Should show at most 2 records

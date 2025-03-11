@@ -21,7 +21,7 @@ help:
 
 install:
 	@echo "Installing dependencies..."
-	poetry install
+	poetry install --no-root
 
 migrate:
 	@echo "Running migrations..."

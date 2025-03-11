@@ -132,6 +132,23 @@ make test-cov
 ```
 This will display coverage statistics for each module directly in your terminal.
 
+Generate code coverage HTML report:
+```
+make test-cov-html
+```
+This will generate detailed HTML coverage reports in the `htmlcov` directory.
+
+### Continuous Integration
+
+This project uses GitHub Actions for continuous integration. The workflow:
+- Runs on push to main/master and pull requests
+- Tests with Python 3.12
+- Checks code style with Ruff
+- Runs test suite with coverage reporting
+- Enforces minimum 80% test coverage
+
+The CI configuration is in `.github/workflows/tests.yml`.
+
 ### Code Quality
 
 Check code for style issues and potential problems:

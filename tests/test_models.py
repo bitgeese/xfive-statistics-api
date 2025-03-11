@@ -217,14 +217,14 @@ class TestDemographicStatisticModel:
             name=age_group_data[1]["name"],
             is_aggregate=age_group_data[1]["is_aggregate"],
         )
-        
+
         male = Sex.objects.create(
             name=sex_data[0]["name"], is_aggregate=sex_data[0]["is_aggregate"]
         )
         female = Sex.objects.create(
             name=sex_data[1]["name"], is_aggregate=sex_data[1]["is_aggregate"]
         )
-        
+
         hd_index1 = HDIndex.objects.create(
             name=hd_index_data[0]["name"], is_aggregate=hd_index_data[0]["is_aggregate"]
         )
@@ -249,36 +249,38 @@ class TestDemographicStatisticModel:
         # Test filtering by year
         year_filtered = DemographicStatistic.filter_statistics(year=2023)
         assert year_filtered.count() == 2
-        
+
         # Test filtering by age_group object
         age_filtered = DemographicStatistic.filter_statistics(age_group=age_group1)
         assert age_filtered.count() == 3
-        
+
         # Test filtering by age_group name
-        age_name_filtered = DemographicStatistic.filter_statistics(age_group=age_group1.name)
+        age_name_filtered = DemographicStatistic.filter_statistics(
+            age_group=age_group1.name
+        )
         assert age_name_filtered.count() == 3
-        
+
         # Test filtering by sex object
         sex_filtered = DemographicStatistic.filter_statistics(sex=male)
         assert sex_filtered.count() == 3
-        
+
         # Test filtering by sex name
         sex_name_filtered = DemographicStatistic.filter_statistics(sex=male.name)
         assert sex_name_filtered.count() == 3
-        
+
         # Test filtering by hd_index object
         hdi_filtered = DemographicStatistic.filter_statistics(hd_index=hd_index1)
         assert hdi_filtered.count() == 3
-        
+
         # Test filtering by hd_index name
-        hdi_name_filtered = DemographicStatistic.filter_statistics(hd_index=hd_index1.name)
+        hdi_name_filtered = DemographicStatistic.filter_statistics(
+            hd_index=hd_index1.name
+        )
         assert hdi_name_filtered.count() == 3
-        
+
         # Test combined filtering
         combined_filtered = DemographicStatistic.filter_statistics(
-            year=2023, 
-            age_group=age_group1, 
-            sex=male
+            year=2023, age_group=age_group1, sex=male
         )
         assert combined_filtered.count() == 1
         assert combined_filtered.first().value == 200
@@ -286,7 +288,7 @@ class TestDemographicStatisticModel:
     def test_clean_method(self, age_group_data, sex_data, hd_index_data):
         """Test the clean method enforces validation rules."""
         from demographics.models import AgeGroup, Sex, HDIndex, DemographicStatistic
-        
+
         # Create related objects
         age_group = AgeGroup.objects.create(
             name=age_group_data[1]["name"],
@@ -298,7 +300,7 @@ class TestDemographicStatisticModel:
         hd_index = HDIndex.objects.create(
             name=hd_index_data[0]["name"], is_aggregate=hd_index_data[0]["is_aggregate"]
         )
-        
+
         # Create a valid statistic
         statistic = DemographicStatistic(
             year=2023,
@@ -307,21 +309,21 @@ class TestDemographicStatisticModel:
             hd_index=hd_index,
             value=1000,
         )
-        
+
         # This should not raise any errors
         statistic.clean()
-        
+
         # Now set a negative value
         statistic.value = -10
-        
+
         # This should raise a ValueError
         with pytest.raises(ValueError):
             statistic.clean()
-            
+
     def test_save_method_calls_clean(self, age_group_data, sex_data, hd_index_data):
         """Test that the save method calls clean to validate the object."""
         from demographics.models import AgeGroup, Sex, HDIndex, DemographicStatistic
-        
+
         # Create related objects
         age_group = AgeGroup.objects.create(
             name=age_group_data[1]["name"],
@@ -333,7 +335,7 @@ class TestDemographicStatisticModel:
         hd_index = HDIndex.objects.create(
             name=hd_index_data[0]["name"], is_aggregate=hd_index_data[0]["is_aggregate"]
         )
-        
+
         # Create a statistic with invalid data
         statistic = DemographicStatistic(
             year=2023,
@@ -342,7 +344,7 @@ class TestDemographicStatisticModel:
             hd_index=hd_index,
             value=-1000,  # Negative value
         )
-        
+
         # Attempting to save should raise an exception
         with pytest.raises(ValueError):
             statistic.save()

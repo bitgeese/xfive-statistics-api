@@ -9,7 +9,7 @@ import pytest
 from django.urls import reverse
 from django.test import Client
 from django.contrib.messages import get_messages
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 import tempfile
 import os
 
@@ -71,12 +71,19 @@ class TestFrontendViews:
 
         # Check that the response contains the required HTML elements and scripts
         content = response.content.decode()
-        assert "<title>Demographics Dashboard</title>" in content or "<title>Dashboard</title>" in content
+        assert (
+            "<title>Demographics Dashboard</title>" in content
+            or "<title>Dashboard</title>" in content
+        )
         assert 'id="app"' in content  # Alpine.js app container
-        assert "alpine" in content.lower()  # Alpine.js might be referenced in various ways
+        assert (
+            "alpine" in content.lower()
+        )  # Alpine.js might be referenced in various ways
         assert "axios" in content.lower() or "fetch" in content.lower()  # HTTP client
         assert "chart" in content.lower()  # Chart.js
-        assert "tailwind" in content.lower() or "css" in content.lower()  # CSS framework
+        assert (
+            "tailwind" in content.lower() or "css" in content.lower()
+        )  # CSS framework
 
         # In a real app, years and age groups would be dynamically loaded,
         # so we won't check for specific values in the HTML
@@ -127,7 +134,11 @@ class TestFrontendViews:
         content = response.content.decode()
 
         # Check for database-related elements
-        assert "clean" in content.lower() or "reset" in content.lower() or "clear" in content.lower()
+        assert (
+            "clean" in content.lower()
+            or "reset" in content.lower()
+            or "clear" in content.lower()
+        )
         assert "database" in content.lower() or "data" in content.lower()
 
     def test_import_file_view_no_file(self):
@@ -135,11 +146,11 @@ class TestFrontendViews:
         client = Client()
         url = reverse("import_file")
         response = client.post(url, {}, follow=True)
-        
+
         # Check that the response redirects to the dashboard
         assert response.status_code == 200
         assert response.redirect_chain[-1][0] == reverse("dashboard")
-        
+
         # Check that an error message was set
         messages = list(get_messages(response.wsgi_request))
         assert len(messages) > 0
@@ -153,22 +164,18 @@ class TestFrontendViews:
         temp_csv.write(b"Year,Age Group,Sex,Human Development Index Rating,VALUE\n")
         temp_csv.write(b"2023,0 - 4 years,1,20,1000\n")
         temp_csv.close()
-        
+
         try:
             # Open file for reading
             with open(temp_csv.name, "rb") as csv_file:
                 client = Client()
                 url = reverse("import_file")
-                response = client.post(
-                    url, 
-                    {"file": csv_file}, 
-                    follow=True
-                )
-            
+                response = client.post(url, {"file": csv_file}, follow=True)
+
             # Check that the response redirects to the dashboard
             assert response.status_code == 200
             assert response.redirect_chain[-1][0] == reverse("dashboard")
-            
+
             # Check that a success or error message was set
             messages = list(get_messages(response.wsgi_request))
             assert len(messages) > 0
@@ -181,11 +188,11 @@ class TestFrontendViews:
         client = Client()
         url = reverse("import_url")
         response = client.post(url, {}, follow=True)
-        
+
         # Check that the response redirects to the dashboard
         assert response.status_code == 200
         assert response.redirect_chain[-1][0] == reverse("dashboard")
-        
+
         # Check that an error message was set
         messages = list(get_messages(response.wsgi_request))
         assert len(messages) > 0
@@ -196,23 +203,21 @@ class TestFrontendViews:
         """Test that the import URL view processes URL imports."""
         # Mock the call_command function
         mock_call_command.return_value = None
-        
+
         client = Client()
         url = reverse("import_url")
         response = client.post(
-            url, 
-            {"url": "https://example.com/data.csv"}, 
-            follow=True
+            url, {"url": "https://example.com/data.csv"}, follow=True
         )
-        
+
         # Check that the response redirects to the dashboard
         assert response.status_code == 200
         assert response.redirect_chain[-1][0] == reverse("dashboard")
-        
+
         # Check that a success message was set
         messages = list(get_messages(response.wsgi_request))
         assert len(messages) > 0
-        
+
         # Check that the command was called with the URL
         mock_call_command.assert_called_once()
 
@@ -220,20 +225,20 @@ class TestFrontendViews:
         """Test that the clean database view works correctly."""
         # Ensure we have data before cleaning
         assert DemographicStatistic.objects.count() > 0
-        
+
         client = Client()
         url = reverse("clean_database")
         response = client.post(url, follow=True)
-        
+
         # Check that the response redirects to the dashboard
         assert response.status_code == 200
         assert response.redirect_chain[-1][0] == reverse("dashboard")
-        
+
         # Check that a success message was set
         messages = list(get_messages(response.wsgi_request))
         assert len(messages) > 0
         assert "clean" in str(messages[0]).lower()
-        
+
         # Verify that demographic statistics were cleaned
         assert DemographicStatistic.objects.count() == 0
 
@@ -242,19 +247,17 @@ class TestFrontendViews:
         """Test that the import URL view handles exceptions correctly."""
         # Mock the call_command function to raise an exception
         mock_call_command.side_effect = Exception("Import failed")
-        
+
         client = Client()
         url = reverse("import_url")
         response = client.post(
-            url, 
-            {"url": "https://example.com/data.csv"}, 
-            follow=True
+            url, {"url": "https://example.com/data.csv"}, follow=True
         )
-        
+
         # Check that the response redirects to the dashboard
         assert response.status_code == 200
         assert response.redirect_chain[-1][0] == reverse("dashboard")
-        
+
         # Check that an error message was set
         messages = list(get_messages(response.wsgi_request))
         assert len(messages) > 0
