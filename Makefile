@@ -1,4 +1,4 @@
-.PHONY: help setup install migrate dev-server lint format test test-cov clean import-data create-superuser
+.PHONY: help setup install migrate dev-server lint format test test-cov clean import-data import-url show-stats create-superuser
 
 # Set variables
 PYTHON = poetry run python
@@ -15,7 +15,9 @@ help:
 	@echo "  make test            - Run tests"
 	@echo "  make test-cov        - Run tests with coverage"
 	@echo "  make clean           - Remove Python cache files"
-	@echo "  make import-data     - Import CSV data (specify file with CSV=path/to/file.csv)"
+	@echo "  make import-data     - Import CSV data from file (specify file with CSV=path/to/file.csv)"
+	@echo "  make import-url      - Import CSV data from URL (specify URL with URL=https://example.com/data.csv)"
+	@echo "  make show-stats      - Show statistics about imported data (optional: YEAR=2023 LIMIT=10)"
 	@echo "  make create-superuser - Create a Django superuser"
 
 setup: install migrate
@@ -62,7 +64,27 @@ import-data:
 		exit 1; \
 	fi
 	@echo "Importing data from $(CSV)..."
-	$(MANAGE) import_csv $(CSV)
+	$(MANAGE) import_demographics --file=$(CSV)
+
+import-url:
+	@if [ -z "$(URL)" ]; then \
+		echo "Error: URL not specified. Use URL=https://example.com/data.csv"; \
+		exit 1; \
+	fi
+	@echo "Importing data from URL $(URL)..."
+	$(MANAGE) import_demographics --url=$(URL)
+
+show-stats:
+	@echo "Showing statistics..."
+	@if [ -n "$(YEAR)" ] && [ -n "$(LIMIT)" ]; then \
+		$(MANAGE) show_statistics --year=$(YEAR) --limit=$(LIMIT); \
+	elif [ -n "$(YEAR)" ]; then \
+		$(MANAGE) show_statistics --year=$(YEAR); \
+	elif [ -n "$(LIMIT)" ]; then \
+		$(MANAGE) show_statistics --limit=$(LIMIT); \
+	else \
+		$(MANAGE) show_statistics; \
+	fi
 
 create-superuser:
 	@echo "Creating superuser..."
