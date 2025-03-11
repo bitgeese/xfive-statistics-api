@@ -1,4 +1,4 @@
-.PHONY: help install migrate dev-server test test-cov lint format import-data import-url show-stats clean create-superuser
+.PHONY: help install migrate dev-server test test-cov test-cov-html lint format import-data import-url show-stats clean create-superuser
 
 PYTHON = poetry run python
 MANAGE = $(PYTHON) manage.py
@@ -10,6 +10,7 @@ help:
 	@echo "  make dev-server      - Run development server"
 	@echo "  make test            - Run tests"
 	@echo "  make test-cov        - Run tests with coverage report in console"
+	@echo "  make test-cov-html   - Run tests with HTML coverage report"
 	@echo "  make lint            - Check code with Ruff"
 	@echo "  make format          - Format code with Ruff"
 	@echo "  make import-data     - Import CSV data from file (specify CSV=path/to/file.csv)"
@@ -38,6 +39,11 @@ test:
 test-cov:
 	@echo "Running tests with coverage..."
 	poetry run pytest --cov=demographics --cov=visualization --cov-report=term
+
+test-cov-html:
+	@echo "Running tests with HTML coverage report..."
+	poetry run pytest --cov=demographics --cov=visualization --cov-report=html
+	@echo "HTML coverage report generated in htmlcov/ directory"
 
 lint:
 	@echo "Linting code..."
