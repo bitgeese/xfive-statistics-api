@@ -200,12 +200,96 @@ The API provides several endpoints for accessing and filtering demographic data:
 
 ### Example Queries
 
-Filtering by age group and HDI category:
+#### Basic Listing
+```
+GET /api/demographics/
+```
+Returns a paginated list of all demographic statistics.
+
+#### Filtering by Year
+```
+GET /api/demographics/?year=2023
+```
+Returns all statistics for the year 2023.
+
+#### Filtering by Age Group
+```
+GET /api/demographics/?age_group=0 - 4 years
+```
+Returns all statistics for the "0 - 4 years" age group.
+
+#### Filtering by Sex
+```
+GET /api/demographics/?sex=Male
+```
+Returns all statistics for males.
+
+#### Filtering by HDI Category
+```
+GET /api/demographics/?hd_index=High Human Development Index (HDI)
+```
+Returns all statistics for the "High Human Development Index (HDI)" category.
+
+#### Combined Filtering
 ```
 GET /api/demographics/?age_group=20 - 24 years&hd_index=High Human Development Index (HDI)
 ```
+Returns statistics for the "20 - 24 years" age group with "High Human Development Index (HDI)".
 
-The response includes both the individual statistics and the aggregated total for both sexes.
+The response includes both the individual statistics and the aggregated total for both sexes in the `total_both_sexes` field.
+
+### Response Format
+
+```json
+{
+  "count": 2,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "year": 2023,
+      "age_group": "20 - 24 years",
+      "sex": "Male",
+      "hd_index": "High Human Development Index (HDI)",
+      "value": 150,
+      "total_both_sexes": 280
+    },
+    {
+      "year": 2023,
+      "age_group": "20 - 24 years",
+      "sex": "Female",
+      "hd_index": "High Human Development Index (HDI)",
+      "value": 130,
+      "total_both_sexes": 280
+    }
+  ]
+}
+```
+
+### Error Handling
+
+The API provides descriptive error messages when invalid parameters are provided:
+
+```json
+{
+  "error": "Invalid age_group parameter: 'Non-existent Age Group' does not exist. Please provide a valid age group."
+}
+```
+
+This helps API consumers quickly understand what went wrong and how to fix their request.
+
+### Pagination
+
+The API uses pagination to limit the number of results returned in a single request. By default, 50 items are returned per page. You can navigate through pages using the `next` and `previous` URLs provided in the response.
+
+### API Documentation
+
+The API includes interactive documentation available at:
+
+- `/api/docs/` - Swagger UI interface for exploring and testing the API
+- `/api/redoc/` - ReDoc interface for API documentation
+
+These interfaces provide a convenient way to explore the available endpoints, parameters, and response formats.
 
 ## Development
 

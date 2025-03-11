@@ -1,3 +1,10 @@
+"""
+Admin configuration for the demographics app.
+
+This module contains admin configuration for the demographics app models,
+including customizations for the Django admin interface.
+"""
+
 from django.contrib import admin
 from django.db.models import Sum
 from .models import AgeGroup, Sex, HDIndex, DemographicStatistic
@@ -5,38 +12,39 @@ from .models import AgeGroup, Sex, HDIndex, DemographicStatistic
 
 @admin.register(AgeGroup)
 class AgeGroupAdmin(admin.ModelAdmin):
-    """Admin configuration for AgeGroup model."""
+    """Admin interface for AgeGroup model."""
 
-    list_display = ("name", "is_aggregate")
-    list_filter = ("is_aggregate",)
-    search_fields = ("name",)
+    list_display = ["name", "is_aggregate"]
+    search_fields = ["name"]
+    list_filter = ["is_aggregate"]
 
 
 @admin.register(Sex)
 class SexAdmin(admin.ModelAdmin):
-    """Admin configuration for Sex model."""
+    """Admin interface for Sex model."""
 
-    list_display = ("name", "is_aggregate")
-    list_filter = ("is_aggregate",)
-    search_fields = ("name",)
+    list_display = ["name", "is_aggregate"]
+    search_fields = ["name"]
+    list_filter = ["is_aggregate"]
 
 
 @admin.register(HDIndex)
 class HDIndexAdmin(admin.ModelAdmin):
-    """Admin configuration for HDIndex model."""
+    """Admin interface for HDIndex model."""
 
-    list_display = ("name", "is_aggregate")
-    list_filter = ("is_aggregate",)
-    search_fields = ("name",)
+    list_display = ["name", "is_aggregate"]
+    search_fields = ["name"]
+    list_filter = ["is_aggregate"]
 
 
 @admin.register(DemographicStatistic)
 class DemographicStatisticAdmin(admin.ModelAdmin):
-    """Admin configuration for DemographicStatistic model."""
+    """Admin interface for DemographicStatistic model."""
 
-    list_display = ("year", "age_group", "sex", "hd_index", "value")
-    list_filter = ("year", "age_group", "sex", "hd_index")
-    search_fields = ("year", "age_group__name", "sex__name", "hd_index__name")
+    list_display = ["year", "age_group", "sex", "hd_index", "value"]
+    list_filter = ["year", "age_group", "sex", "hd_index"]
+    search_fields = ["age_group__name", "sex__name", "hd_index__name"]
+    autocomplete_fields = ["age_group", "sex", "hd_index"]
     readonly_fields = ("computed_total",)
 
     def computed_total(self, obj):
