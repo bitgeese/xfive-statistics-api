@@ -1,4 +1,4 @@
-# XFive Data Statistics API
+$ XFive Data Statistics API
 
 A Django application that processes demographic data from CSV files and provides an API for data analysis with visualization.
 
@@ -51,19 +51,52 @@ Filtering capabilities:
 ### Prerequisites
 
 - Python 3.12+
-- Poetry for dependency management
+- Docker and Docker Compose (for container-based setup, recommended)
+- Poetry (for local development with Poetry)
 
-### Installation
+### Quick Setup (Recommended)
+
+Use the interactive setup script to choose your preferred installation method:
+
+```bash
+./setup.sh
+```
+
+This will guide you through the setup process and detect available tools on your system.
+
+### Installation Options
+
+#### Option 1: Docker Compose Setup (Recommended)
+
+The simplest way to get started is using the Docker setup:
+
+```bash
+make docker-setup
+```
+
+This will:
+1. Check for Docker and Docker Compose
+2. Create a `.env` file if needed
+3. Build and start the containers
+4. Provide feedback and next steps
+
+After setup, the application will be available at: http://localhost:8000
+
+#### Option 2: Local Poetry Setup
 
 1. Clone the repository:
    ```
-   git clone [repository-url]
-   cd xfive
+   git clone https://github.com/bitgeese/xfive-statistics-api
+   cd xfive-statistics-api
    ```
 
 2. Install dependencies:
    ```
    make install
+   ```
+   or
+   ```
+   poetry install
    ```
 
 3. Run migrations:
@@ -75,6 +108,37 @@ Filtering capabilities:
    ```
    make dev-server
    ```
+
+#### Option 3: Local Pip Setup
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/bitgeese/xfive-statistics-api
+   cd xfive-statistics-api
+   ```
+
+2. Create a virtual environment:
+   ```
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. Install dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+
+4. Run migrations:
+   ```
+   python manage.py migrate
+   ```
+
+5. Start the development server:
+   ```
+   python manage.py runserver
+   ```
+
+For more detailed Docker instructions, see [DOCKER.md](DOCKER.md).
 
 ## Data Import
 
@@ -160,3 +224,7 @@ Format code automatically:
 ```
 make format
 ```
+
+## Deployment
+
+For production deployment instructions, see [DOCKER.md](DOCKER.md#production-environment).

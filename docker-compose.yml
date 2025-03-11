@@ -1,0 +1,56 @@
+services:
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=xfive
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    command: >
+      sh -c "python manage.py wait_for_db &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+      - ./data:/app/data
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=1
+      - SECRET_KEY=devkey
+      - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/xfive
+      - DATABASE_ENGINE=django.db.backends.postgresql
+      - DATABASE_NAME=xfive
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Development-only services below
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=dev@example.com
+      - PGADMIN_DEFAULT_PASSWORD=pgadmin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    profiles:
+      - dev
+
+volumes:
+  postgres_data: 
