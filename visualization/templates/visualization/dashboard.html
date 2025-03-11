@@ -1,0 +1,787 @@
+{% extends 'visualization/base.html' %}
+
+{% block title %}Demographics Dashboard{% endblock %}
+{% block header_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div x-data="dashboard()" x-cloak id="app">
+  <!-- Dashboard Layout -->
+  <div class="grid grid-cols-12 gap-4">
+    <!-- Chart Section - Main content -->
+    <div class="col-span-12 lg:col-span-8 space-y-4">
+      <!-- HDI Demographics Chart Card -->
+      <div class="bg-linear-surface rounded-md border border-linear-border overflow-hidden card-glow">
+        <div class="flex items-center justify-between py-2.5 px-3 border-b border-linear-border bg-gradient-card">
+          <h2 class="text-sm font-medium">Demographics by HDI</h2>
+          <div class="flex items-center">
+            <span class="text-xs text-linear-textSecondary" x-show="!isLoading && filteredData.length > 0">
+              <span x-text="filteredData.length"></span> records
+            </span>
+          </div>
+        </div>
+        <div class="p-3">
+          <!-- Loading state -->
+          <div x-show="isLoading" class="flex justify-center py-12">
+            <svg class="animate-spin h-5 w-5 text-linear-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+          
+          <!-- Empty state -->
+          <div x-show="!isLoading && filteredData.length === 0" class="text-center py-12">
+            <svg class="mx-auto h-8 w-8 text-linear-textSecondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium">No data available</h3>
+            <p class="mt-1 text-xs text-linear-textSecondary">Try adjusting your filters or importing data.</p>
+          </div>
+          
+          <!-- Chart container -->
+          <div x-show="!isLoading && filteredData.length > 0" class="chart-container">
+            <canvas id="demographics-chart"></canvas>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Age Distribution Chart -->
+      <div class="bg-linear-surface rounded-md border border-linear-border overflow-hidden card-glow">
+        <div class="flex items-center justify-between py-2.5 px-3 border-b border-linear-border bg-gradient-card">
+          <h2 class="text-sm font-medium">Age Distribution</h2>
+        </div>
+        <div class="p-3">
+          <!-- Loading state -->
+          <div x-show="isLoading" class="flex justify-center py-12">
+            <svg class="animate-spin h-5 w-5 text-linear-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+          
+          <!-- Chart container -->
+          <div x-show="!isLoading && filteredData.length > 0" class="chart-container">
+            <canvas id="age-distribution-chart"></canvas>
+          </div>
+          
+          <!-- Empty state -->
+          <div x-show="!isLoading && filteredData.length === 0" class="text-center py-12">
+            <p class="text-xs text-linear-textSecondary">No data matches your current filter criteria.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Right Sidebar - Stats and Filters -->
+    <div class="col-span-12 lg:col-span-4 space-y-4">
+      <!-- Filters Card -->
+      <div class="bg-linear-surface rounded-md border border-linear-border overflow-hidden card-glow">
+        <div class="py-2.5 px-3 border-b border-linear-border bg-gradient-card">
+          <h2 class="text-sm font-medium">Filters</h2>
+        </div>
+        <div class="p-3 space-y-3">
+          <!-- Year Filter -->
+          <div>
+            <label for="year-filter" class="block text-xs text-linear-textSecondary mb-1">Year</label>
+            <select id="year-filter" x-model="filters.year" @change="applyFilters()" 
+                    class="block w-full px-2 py-1.5 rounded text-sm bg-linear-bg border border-linear-border text-linear-text focus:border-linear-accent focus:ring-0">
+              <option value="">All Years</option>
+              <template x-for="year in availableYears" :key="year">
+                <option :value="year" x-text="year"></option>
+              </template>
+            </select>
+          </div>
+          
+          <!-- Age Group Filter -->
+          <div>
+            <label for="age-group-filter" class="block text-xs text-linear-textSecondary mb-1">Age Group</label>
+            <select id="age-group-filter" x-model="filters.ageGroup" @change="applyFilters()" 
+                    class="block w-full px-2 py-1.5 rounded text-sm bg-linear-bg border border-linear-border text-linear-text focus:border-linear-accent focus:ring-0">
+              <option value="">All Age Groups</option>
+              <template x-for="ageGroup in availableAgeGroups" :key="ageGroup.value">
+                <option :value="ageGroup.value" x-text="ageGroup.label"></option>
+              </template>
+            </select>
+          </div>
+          
+          <!-- Sex Filter -->
+          <div>
+            <label for="sex-filter" class="block text-xs text-linear-textSecondary mb-1">Sex</label>
+            <select id="sex-filter" x-model="filters.sex" @change="applyFilters()" 
+                    class="block w-full px-2 py-1.5 rounded text-sm bg-linear-bg border border-linear-border text-linear-text focus:border-linear-accent focus:ring-0">
+              <option value="">All</option>
+              <template x-for="sex in availableSexes" :key="sex.value">
+                <option :value="sex.value" x-text="sex.label"></option>
+              </template>
+            </select>
+          </div>
+          
+          <!-- HDI Filter -->
+          <div>
+            <label for="hdi-filter" class="block text-xs text-linear-textSecondary mb-1">HDI Category</label>
+            <select id="hdi-filter" x-model="filters.hdiCategory" @change="applyFilters()" 
+                    class="block w-full px-2 py-1.5 rounded text-sm bg-linear-bg border border-linear-border text-linear-text focus:border-linear-accent focus:ring-0">
+              <option value="">All HDI Categories</option>
+              <template x-for="hdiCategory in availableHdiCategories" :key="hdiCategory.value">
+                <option :value="hdiCategory.value" x-text="hdiCategory.label"></option>
+              </template>
+            </select>
+          </div>
+          
+          <!-- Reset Filters Button -->
+          <div class="pt-1">
+            <button @click="resetFilters()" class="w-full px-2 py-1.5 text-xs bg-linear-bg hover:bg-linear-surfaceHover text-linear-textSecondary hover:text-linear-text rounded border border-linear-border btn-hover-effect">
+              Reset Filters
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Statistics Card -->
+      <div class="bg-linear-surface rounded-md border border-linear-border overflow-hidden card-glow">
+        <div class="py-2.5 px-3 border-b border-linear-border bg-gradient-card">
+          <h2 class="text-sm font-medium">Statistics</h2>
+        </div>
+        <div class="divide-y divide-linear-border">
+          <div class="py-2 px-3 flex justify-between items-center">
+            <span class="text-xs text-linear-textSecondary">Total Records</span>
+            <span class="text-xs font-medium" x-text="statistics.totalCount || 0"></span>
+          </div>
+          <div class="py-2 px-3 flex justify-between items-center">
+            <span class="text-xs text-linear-textSecondary">Male/Female Ratio</span>
+            <span class="text-xs font-medium" x-text="statistics.genderRatio || '0:0'"></span>
+          </div>
+          <div class="py-2 px-3 flex justify-between items-center">
+            <span class="text-xs text-linear-textSecondary">Average Value</span>
+            <span class="text-xs font-medium" x-text="statistics.averageValue ? statistics.averageValue.toFixed(2) : 0"></span>
+          </div>
+          <div class="py-2 px-3 flex justify-between items-center">
+            <span class="text-xs text-linear-textSecondary">HDI Categories</span>
+            <span class="text-xs font-medium" x-text="statistics.hdiCategoryCount || 0"></span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Data Table Card -->
+      <div class="bg-linear-surface rounded-md border border-linear-border overflow-hidden card-glow">
+        <div class="py-2.5 px-3 border-b border-linear-border bg-gradient-card flex justify-between items-center">
+          <h2 class="text-sm font-medium">Latest Data</h2>
+          <div class="flex items-center space-x-1" x-show="!isLoading && filteredData.length > 0">
+            <span class="text-xs text-linear-textSecondary">Page</span>
+            <span class="text-xs font-medium" x-text="currentPage"></span>
+            <span class="text-xs text-linear-textSecondary">of</span>
+            <span class="text-xs font-medium" x-text="totalPages"></span>
+          </div>
+        </div>
+        <!-- Loading state -->
+        <div x-show="isLoading" class="flex justify-center py-12">
+          <svg class="animate-spin h-5 w-5 text-linear-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+        
+        <!-- Data table -->
+        <div x-show="!isLoading && filteredData.length > 0" class="overflow-x-auto">
+          <table class="min-w-full text-xs">
+            <thead class="bg-linear-bg">
+              <tr>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-linear-textSecondary uppercase tracking-wider">Year</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-linear-textSecondary uppercase tracking-wider">Age Group</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-linear-textSecondary uppercase tracking-wider">Sex</th>
+                <th scope="col" class="px-3 py-2 text-left text-xs font-medium text-linear-textSecondary uppercase tracking-wider">Value</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-linear-border">
+              <template x-for="(item, index) in paginatedData" :key="index">
+                <tr class="hover:bg-linear-surfaceHover transition-colors">
+                  <td class="px-3 py-2 whitespace-nowrap" x-text="item.year"></td>
+                  <td class="px-3 py-2 whitespace-nowrap text-linear-textSecondary" x-text="item.age_group"></td>
+                  <td class="px-3 py-2 whitespace-nowrap text-linear-textSecondary" x-text="item.sex"></td>
+                  <td class="px-3 py-2 whitespace-nowrap font-medium" x-text="item.value"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+          
+          <!-- Pagination controls -->
+          <div class="px-3 py-2 bg-linear-bg border-t border-linear-border flex items-center justify-between" x-show="totalPages > 1">
+            <div class="flex space-x-1 text-xs text-linear-textSecondary">
+              <span>Showing</span>
+              <span class="font-medium text-linear-text" x-text="((currentPage - 1) * perPage) + 1"></span>
+              <span>to</span>
+              <span class="font-medium text-linear-text" x-text="Math.min(currentPage * perPage, filteredData.length)"></span>
+              <span>of</span>
+              <span class="font-medium text-linear-text" x-text="filteredData.length"></span>
+              <span>results</span>
+            </div>
+            
+            <div class="flex space-x-1">
+              <!-- Previous page button -->
+              <button @click="prevPage()" :disabled="currentPage === 1" :class="{'opacity-50 cursor-not-allowed': currentPage === 1}" class="p-1 rounded bg-linear-surface hover:bg-linear-surfaceHover border border-linear-border focus:outline-none btn-hover-effect">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-linear-textSecondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              
+              <!-- Page number buttons (show max 3) -->
+              <template x-for="page in paginationRange" :key="page">
+                <button @click="goToPage(page)" 
+                        :class="{'bg-linear-accent text-white': currentPage === page, 'bg-linear-surface text-linear-textSecondary hover:bg-linear-surfaceHover': currentPage !== page}"
+                        class="px-2 py-1 rounded text-xs border border-linear-border focus:outline-none">
+                  <span x-text="page"></span>
+                </button>
+              </template>
+              
+              <!-- Next page button -->
+              <button @click="nextPage()" :disabled="currentPage === totalPages" :class="{'opacity-50 cursor-not-allowed': currentPage === totalPages}" class="p-1 rounded bg-linear-surface hover:bg-linear-surfaceHover border border-linear-border focus:outline-none btn-hover-effect">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-linear-textSecondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Empty state -->
+        <div x-show="!isLoading && filteredData.length === 0" class="text-center py-12">
+          <p class="text-xs text-linear-textSecondary">No data matches your current filter criteria.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function dashboard() {
+    return {
+      apiEndpoint: '{{ api_endpoint }}',
+      isLoading: true,
+      rawData: [],
+      filteredData: [],
+      availableYears: {{ years|safe }},
+      availableAgeGroups: [],
+      availableSexes: [],
+      availableHdiCategories: [],
+      filters: {
+        year: '',
+        ageGroup: '',
+        sex: '',
+        hdiCategory: ''
+      },
+      statistics: {
+        totalCount: 0,
+        genderRatio: '0:0',
+        averageValue: 0,
+        hdiCategoryCount: 0
+      },
+      demographicsChart: null,
+      ageDistributionChart: null,
+      
+      // Pagination properties
+      currentPage: 1,
+      perPage: 10,
+      
+      // Computed property to get paginated data
+      get paginatedData() {
+        const start = (this.currentPage - 1) * this.perPage;
+        const end = start + this.perPage;
+        return this.filteredData.slice(start, end);
+      },
+      
+      // Computed property to get total number of pages
+      get totalPages() {
+        return Math.ceil(this.filteredData.length / this.perPage);
+      },
+      
+      // Computed property to get pagination range (which page numbers to show)
+      get paginationRange() {
+        const range = [];
+        const maxButtons = 3; // Maximum number of page buttons to show
+        
+        if (this.totalPages <= maxButtons) {
+          // If we have 3 or fewer pages, show all of them
+          for (let i = 1; i <= this.totalPages; i++) {
+            range.push(i);
+          }
+        } else {
+          // Otherwise, show a range centered around current page when possible
+          let start = Math.max(1, this.currentPage - 1);
+          let end = Math.min(this.totalPages, start + maxButtons - 1);
+          
+          // Adjust start if end is at max
+          if (end === this.totalPages) {
+            start = Math.max(1, end - maxButtons + 1);
+          }
+          
+          for (let i = start; i <= end; i++) {
+            range.push(i);
+          }
+        }
+        
+        return range;
+      },
+
+      init() {
+        this.convertFilterOptions();
+        this.fetchData();
+      },
+
+      convertFilterOptions() {
+        // Convert age groups to label/value pairs
+        this.availableAgeGroups = {{ age_groups|safe }}.map(value => {
+          // Map age group IDs to meaningful age ranges
+          const ageRanges = {
+            1: 'Under 5 years',
+            2: '5 - 9 years',
+            3: '10 - 14 years',
+            4: '15 - 19 years',
+            5: '20 - 24 years',
+            6: '25 - 29 years',
+            7: '30 - 34 years',
+            8: '35 - 39 years',
+            9: '40 - 44 years',
+            10: '45 - 49 years',
+            11: '50 - 54 years',
+            12: '55 - 59 years',
+            13: '60 - 64 years',
+            14: '65 - 69 years',
+            15: '70 - 74 years',
+            16: '75 - 79 years',
+            17: '80 - 84 years',
+            18: '85 years and over'
+          };
+          
+          return {
+            value: value,
+            label: typeof value === 'string' ? value : (ageRanges[value] || `Age Group ${value}`)
+          };
+        });
+
+        // Convert sexes to label/value pairs
+        this.availableSexes = {{ sexes|safe }}.map(value => {
+          if (value === 1) return { value: value, label: 'Male' };
+          if (value === 2) return { value: value, label: 'Female' };
+          return { value: value, label: value };
+        });
+
+        // Convert HDI categories to label/value pairs
+        this.availableHdiCategories = {{ hdi_categories|safe }}.map(value => {
+          const labels = {
+            1: 'Very High Human Development Index (HDI)',
+            2: 'High Human Development Index (HDI)',
+            3: 'Medium Human Development Index (HDI)',
+            4: 'Low Human Development Index (HDI)'
+          };
+          return {
+            value: value,
+            label: labels[value] || `Category ${value}`
+          };
+        });
+      },
+      
+      // Pagination methods
+      nextPage() {
+        if (this.currentPage < this.totalPages) {
+          this.currentPage++;
+        }
+      },
+      
+      prevPage() {
+        if (this.currentPage > 1) {
+          this.currentPage--;
+        }
+      },
+      
+      goToPage(page) {
+        if (page >= 1 && page <= this.totalPages) {
+          this.currentPage = page;
+        }
+      },
+
+      resetFilters() {
+        this.filters = {
+          year: '',
+          ageGroup: '',
+          sex: '',
+          hdiCategory: ''
+        };
+        this.applyFilters();
+      },
+
+      fetchData() {
+        this.isLoading = true;
+        this.currentPage = 1; // Reset to first page when fetching new data
+        
+        // Construct the API URL with any filters
+        let url = this.apiEndpoint;
+        const params = new URLSearchParams();
+        
+        // Only add parameters if they have valid values
+        if (this.filters.year && this.filters.year !== '') {
+          params.append('year', this.filters.year);
+        }
+        
+        if (this.filters.ageGroup && this.filters.ageGroup !== '') {
+          // Find the selected age group object to get its label
+          const selectedAgeGroup = this.availableAgeGroups.find(
+            ag => ag.value.toString() === this.filters.ageGroup.toString()
+          );
+          if (selectedAgeGroup) {
+            params.append('age_group', selectedAgeGroup.label);
+          }
+        }
+        
+        if (this.filters.sex && this.filters.sex !== '') {
+          // Find the selected sex object to get its label
+          const selectedSex = this.availableSexes.find(
+            s => s.value.toString() === this.filters.sex.toString()
+          );
+          if (selectedSex) {
+            params.append('sex', selectedSex.label);
+          }
+        }
+        
+        if (this.filters.hdiCategory && this.filters.hdiCategory !== '') {
+          // Find the selected HDI category object to get its label
+          const selectedHDI = this.availableHdiCategories.find(
+            hdi => hdi.value.toString() === this.filters.hdiCategory.toString()
+          );
+          if (selectedHDI) {
+            // The API expects the full HDI name format with (HDI) at the end
+            params.append('hd_index', selectedHDI.label);
+          }
+        }
+        
+        // If there are any parameters, append them to the URL
+        const queryString = params.toString();
+        if (queryString) url += `?${queryString}`;
+        
+        // Debug logging to help diagnose API issues
+        console.log('API request with params:', url);
+        
+        // Set a timeout to abort the request if it takes too long
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        axios.get(url, { signal: controller.signal })
+          .then(response => {
+            clearTimeout(timeoutId);
+            
+            if (response.data && response.data.results) {
+              this.rawData = response.data.results;
+              this.filteredData = this.rawData;
+              this.updateStatistics();
+              this.updateCharts();
+            } else {
+              // Handle empty response quietly without console error
+              this.rawData = [];
+              this.filteredData = [];
+            }
+            this.isLoading = false;
+          })
+          .catch(error => {
+            clearTimeout(timeoutId);
+            
+            // Only log errors that aren't caused by request abortion
+            if (!axios.isCancel(error)) {
+              // Add more detailed error logging for debugging
+              console.error('API Error:', error.response ? `Status: ${error.response.status}, Data: ${JSON.stringify(error.response.data)}` : error.message);
+              
+              this.rawData = [];
+              this.filteredData = [];
+            }
+            this.isLoading = false;
+          });
+      },
+
+      applyFilters() {
+        this.fetchData();
+      },
+
+      updateStatistics() {
+        if (this.filteredData.length === 0) {
+          this.statistics = {
+            totalCount: 0,
+            genderRatio: '0:0',
+            averageValue: 0,
+            hdiCategoryCount: 0
+          };
+          return;
+        }
+
+        // Calculate statistics based on filtered data
+        const totalCount = this.filteredData.length;
+        
+        // Gender ratio
+        const maleCount = this.filteredData.filter(item => item.sex === 'Male').length;
+        const femaleCount = this.filteredData.filter(item => item.sex === 'Female').length;
+        const genderRatio = `${maleCount}:${femaleCount}`;
+        
+        // Average value
+        const totalValue = this.filteredData.reduce((sum, item) => sum + item.value, 0);
+        const averageValue = totalValue / totalCount;
+        
+        // HDI category count
+        const uniqueHdiCategories = [...new Set(this.filteredData.map(item => item.hd_index))];
+        const hdiCategoryCount = uniqueHdiCategories.length;
+        
+        this.statistics = {
+          totalCount,
+          genderRatio,
+          averageValue,
+          hdiCategoryCount
+        };
+      },
+
+      updateCharts() {
+        this.updateDemographicsChart();
+        this.updateAgeDistributionChart();
+      },
+
+      updateDemographicsChart() {
+        const ctx = document.getElementById('demographics-chart')?.getContext('2d');
+        if (!ctx) return;
+        
+        // Set Chart.js defaults for dark mode
+        Chart.defaults.color = '#A8A8AE'; // Updated text secondary color
+        Chart.defaults.borderColor = '#301617'; // Updated border color
+        
+        // Destroy existing chart if it exists
+        if (this.demographicsChart) {
+          this.demographicsChart.destroy();
+        }
+        
+        // Group data by HDI category and sex
+        const chartData = {};
+        
+        this.filteredData.forEach(item => {
+          const key = item.hd_index;
+          if (!chartData[key]) {
+            chartData[key] = {
+              Male: 0,
+              Female: 0
+            };
+          }
+          chartData[key][item.sex] += item.value;
+        });
+        
+        // Prepare data for the chart
+        const labels = Object.keys(chartData);
+        const maleData = labels.map(label => chartData[label].Male);
+        const femaleData = labels.map(label => chartData[label].Female);
+        
+        // Map HDI indices to readable labels
+        const readableLabels = labels.map(label => {
+          const category = this.availableHdiCategories.find(cat => cat.value.toString() === label);
+          return category ? category.label : label;
+        });
+        
+        // Updated color palette to match xfive red theme
+        const maleColor = '#DF2935'; // Primary xfive red
+        const maleBackgroundColor = 'rgba(223, 41, 53, 0.8)'; // Red with transparency
+        const femaleColor = '#A55051'; // Muted red for contrast
+        const femaleBackgroundColor = 'rgba(165, 80, 81, 0.7)'; // Muted red with transparency
+        
+        this.demographicsChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: readableLabels,
+            datasets: [
+              {
+                label: 'Male',
+                data: maleData,
+                backgroundColor: maleBackgroundColor,
+                borderColor: maleColor,
+                borderWidth: 1
+              },
+              {
+                label: 'Female',
+                data: femaleData,
+                backgroundColor: femaleBackgroundColor,
+                borderColor: femaleColor, 
+                borderWidth: 1
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: {
+                  boxWidth: 12,
+                  color: '#EEEFF1', // Linear text color
+                  font: {
+                    size: 10
+                  }
+                }
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+                backgroundColor: '#131011', // Updated surface color
+                titleColor: '#EEEFF1', // Linear text color
+                bodyColor: '#EEEFF1', // Linear text color
+                borderColor: '#301617', // Updated border color
+                borderWidth: 1,
+                bodyFont: {
+                  size: 11
+                },
+                titleFont: {
+                  size: 12
+                }
+              }
+            },
+            scales: {
+              x: {
+                stacked: true,
+                grid: {
+                  display: false
+                },
+                ticks: {
+                  color: '#A8A8AE', // Updated text secondary color
+                  font: {
+                    size: 10
+                  }
+                }
+              },
+              y: {
+                stacked: false,
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(48, 22, 23, 0.3)' // Updated border color with transparency
+                },
+                ticks: {
+                  color: '#A8A8AE', // Updated text secondary color
+                  font: {
+                    size: 10
+                  }
+                }
+              }
+            }
+          }
+        });
+      },
+
+      updateAgeDistributionChart() {
+        const ctx = document.getElementById('age-distribution-chart')?.getContext('2d');
+        if (!ctx) return;
+        
+        // Destroy existing chart if it exists
+        if (this.ageDistributionChart) {
+          this.ageDistributionChart.destroy();
+        }
+        
+        // Group data by age group
+        const chartData = {};
+        
+        this.filteredData.forEach(item => {
+          const key = item.age_group;
+          if (!chartData[key]) {
+            chartData[key] = 0;
+          }
+          chartData[key] += item.value;
+        });
+        
+        // Sort age groups by age (not alphabetically)
+        const sortedAgeGroups = Object.keys(chartData).sort((a, b) => {
+          // Extract the first number from each age group
+          const getFirstNumber = str => {
+            const match = str.match(/\d+/);
+            return match ? parseInt(match[0], 10) : 0;
+          };
+          return getFirstNumber(a) - getFirstNumber(b);
+        });
+        
+        // Prepare data for the chart
+        const data = sortedAgeGroups.map(ageGroup => chartData[ageGroup]);
+        
+        // Updated colors to match xfive theme
+        const lineColor = '#DF2935'; // Primary xfive red
+        const fillColor = 'rgba(223, 41, 53, 0.15)'; // Red with high transparency for fill
+        const pointColor = '#8E2026'; // Darker red for points
+        
+        this.ageDistributionChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: sortedAgeGroups,
+            datasets: [
+              {
+                label: 'Population',
+                data: data,
+                backgroundColor: fillColor,
+                borderColor: lineColor,
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true,
+                pointBackgroundColor: pointColor,
+                pointBorderColor: '#FFFFFF',
+                pointBorderWidth: 1,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                pointHoverBackgroundColor: lineColor,
+                pointHoverBorderColor: '#FFFFFF',
+                pointHoverBorderWidth: 2
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+                backgroundColor: '#131011', // Updated surface color
+                titleColor: '#EEEFF1', // Linear text color
+                bodyColor: '#EEEFF1', // Linear text color
+                borderColor: '#301617', // Updated border color
+                borderWidth: 1,
+                bodyFont: {
+                  size: 11
+                },
+                titleFont: {
+                  size: 12
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: {
+                  display: false
+                },
+                ticks: {
+                  color: '#A8A8AE', // Updated text secondary color
+                  maxRotation: 45,
+                  minRotation: 45,
+                  font: {
+                    size: 9
+                  }
+                }
+              },
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(48, 22, 23, 0.2)' // Updated border color with transparency
+                },
+                ticks: {
+                  color: '#A8A8AE', // Updated text secondary color
+                  font: {
+                    size: 10
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+    };
+  }
+</script>
+{% endblock %} 

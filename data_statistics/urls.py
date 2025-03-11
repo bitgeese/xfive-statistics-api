@@ -39,6 +39,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # API endpoints
     path("api/", include("demographics.urls")),
+    # Frontend visualization
+    path("", include("visualization.urls")),
     # API documentation
     path(
         "api/docs/",

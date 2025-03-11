@@ -1,0 +1,279 @@
+<!-- Dashboard Alpine.js Script -->
+<script>
+  function dashboard() {
+    return {
+      apiEndpoint: '{{ api_endpoint }}',
+      isLoading: true,
+      rawData: [],
+      filteredData: [],
+      availableYears: {{ years|safe }},
+      availableAgeGroups: {{ age_groups|safe }},
+      availableSexes: {{ sexes|safe }},
+      availableHdiCategories: {{ hdi_categories|safe }},
+      filters: {
+        year: '',
+        ageGroup: '',
+        sex: '',
+        hdiCategory: ''
+      },
+      statistics: {
+        totalCount: 0,
+        genderRatio: '0:0',
+        averageValue: 0,
+        hdiCategoryCount: 0
+      },
+      demographicsChart: null,
+      ageDistributionChart: null,
+
+      init() {
+        this.fetchData();
+      },
+
+      fetchData() {
+        this.isLoading = true;
+        
+        // Construct the API URL with any filters
+        let url = this.apiEndpoint;
+        const params = new URLSearchParams();
+        
+        if (this.filters.year) params.append('year', this.filters.year);
+        if (this.filters.ageGroup) params.append('age_group', this.filters.ageGroup);
+        if (this.filters.sex) params.append('sex', this.filters.sex);
+        if (this.filters.hdiCategory) params.append('hd_index', this.filters.hdiCategory);
+        
+        // If there are any parameters, append them to the URL
+        const queryString = params.toString();
+        if (queryString) url += `?${queryString}`;
+        
+        axios.get(url)
+          .then(response => {
+            this.rawData = response.data.results;
+            this.filteredData = this.rawData;
+            this.updateStatistics();
+            this.updateCharts();
+            this.isLoading = false;
+          })
+          .catch(error => {
+            console.error('Error fetching data:', error);
+            this.isLoading = false;
+          });
+      },
+
+      applyFilters() {
+        this.fetchData();
+      },
+
+      updateStatistics() {
+        if (this.filteredData.length === 0) {
+          this.statistics = {
+            totalCount: 0,
+            genderRatio: '0:0',
+            averageValue: 0,
+            hdiCategoryCount: 0
+          };
+          return;
+        }
+
+        // Calculate statistics based on filtered data
+        const totalCount = this.filteredData.length;
+        
+        // Gender ratio
+        const maleCount = this.filteredData.filter(item => item.sex === 'Male').length;
+        const femaleCount = this.filteredData.filter(item => item.sex === 'Female').length;
+        const genderRatio = `${maleCount}:${femaleCount}`;
+        
+        // Average value
+        const totalValue = this.filteredData.reduce((sum, item) => sum + item.value, 0);
+        const averageValue = totalValue / totalCount;
+        
+        // HDI category count
+        const uniqueHdiCategories = [...new Set(this.filteredData.map(item => item.hd_index))];
+        const hdiCategoryCount = uniqueHdiCategories.length;
+        
+        this.statistics = {
+          totalCount,
+          genderRatio,
+          averageValue,
+          hdiCategoryCount
+        };
+      },
+
+      updateCharts() {
+        this.updateDemographicsChart();
+        this.updateAgeDistributionChart();
+      },
+
+      updateDemographicsChart() {
+        const ctx = document.getElementById('demographics-chart')?.getContext('2d');
+        if (!ctx) return;
+        
+        // Destroy existing chart if it exists
+        if (this.demographicsChart) {
+          this.demographicsChart.destroy();
+        }
+        
+        // Group data by HDI category and sex
+        const chartData = {};
+        
+        this.filteredData.forEach(item => {
+          const key = item.hd_index;
+          if (!chartData[key]) {
+            chartData[key] = {
+              Male: 0,
+              Female: 0
+            };
+          }
+          chartData[key][item.sex] += item.value;
+        });
+        
+        // Prepare data for the chart
+        const labels = Object.keys(chartData);
+        const maleData = labels.map(label => chartData[label].Male);
+        const femaleData = labels.map(label => chartData[label].Female);
+        
+        this.demographicsChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Male',
+                data: maleData,
+                backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                borderColor: 'rgb(59, 130, 246)',
+                borderWidth: 1
+              },
+              {
+                label: 'Female',
+                data: femaleData,
+                backgroundColor: 'rgba(236, 72, 153, 0.7)',
+                borderColor: 'rgb(236, 72, 153)',
+                borderWidth: 1
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              title: {
+                display: true,
+                text: 'Population by HDI Category and Sex'
+              },
+              legend: {
+                position: 'top',
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+              }
+            },
+            scales: {
+              x: {
+                stacked: true,
+                title: {
+                  display: true,
+                  text: 'HDI Category'
+                }
+              },
+              y: {
+                stacked: false,
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Population Value'
+                }
+              }
+            }
+          }
+        });
+      },
+
+      updateAgeDistributionChart() {
+        const ctx = document.getElementById('age-distribution-chart')?.getContext('2d');
+        if (!ctx) return;
+        
+        // Destroy existing chart if it exists
+        if (this.ageDistributionChart) {
+          this.ageDistributionChart.destroy();
+        }
+        
+        // Group data by age group
+        const chartData = {};
+        
+        this.filteredData.forEach(item => {
+          const key = item.age_group;
+          if (!chartData[key]) {
+            chartData[key] = 0;
+          }
+          chartData[key] += item.value;
+        });
+        
+        // Sort age groups by age (not alphabetically)
+        const sortedAgeGroups = Object.keys(chartData).sort((a, b) => {
+          // Extract the first number from each age group
+          const getFirstNumber = str => {
+            const match = str.match(/\d+/);
+            return match ? parseInt(match[0], 10) : 0;
+          };
+          return getFirstNumber(a) - getFirstNumber(b);
+        });
+        
+        // Prepare data for the chart
+        const data = sortedAgeGroups.map(ageGroup => chartData[ageGroup]);
+        
+        this.ageDistributionChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: sortedAgeGroups,
+            datasets: [
+              {
+                label: 'Population',
+                data: data,
+                backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                borderColor: 'rgb(16, 185, 129)',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: 'rgb(16, 185, 129)',
+                pointRadius: 4
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              title: {
+                display: true,
+                text: 'Population Distribution by Age Group'
+              },
+              legend: {
+                position: 'top',
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+              }
+            },
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: 'Age Group'
+                }
+              },
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Population Value'
+                }
+              }
+            }
+          }
+        });
+      }
+    };
+  }
+</script> 

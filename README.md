@@ -1,6 +1,6 @@
 # XFive Data Statistics API
 
-A Django-based application for importing demographic data from CSV files and providing a REST API for data analysis and visualization.
+A Django-based application for importing demographic data from CSV files, providing a REST API for data analysis, and featuring an interactive visualization dashboard with a modern dark theme.
 
 ## Project Overview
 
@@ -9,7 +9,8 @@ This project processes CSV data containing demographic information about non-EU/
 - Data models to efficiently store demographic statistics
 - CSV import functionality with validation and logging
 - REST API with filtering and aggregation capabilities
-- (Optional) Frontend data visualization
+- Modern data visualization dashboard with dark theme
+- Advanced filtering and data exploration capabilities
 
 ## Features and Implementation
 
@@ -47,6 +48,34 @@ The data models provide methods to dynamically calculate aggregated statistics:
 - Get statistics aggregated across all HDI categories
 - Filter statistics by various combinations of criteria
 
+### Frontend Visualization Dashboard
+
+The application includes a modern visualization dashboard that provides:
+
+- **Dark Theme Interface**: A sophisticated dark red/black color scheme inspired by xfive's branding
+- **Interactive Charts**: Demographics breakdown by HDI category and age distribution visualization
+- **Advanced Filtering**: Filter data by year, age group, sex, and HDI category
+- **Data Table with Pagination**: View and browse through demographic records with pagination controls
+- **Real-time Statistics**: View aggregated statistics based on current filter selections
+
+#### Dashboard Technical Implementation
+
+The dashboard is built using:
+
+- **Django Templates**: For server-side rendering with a component-based structure
+- **Alpine.js**: For reactive data binding and UI interactions without a heavy framework
+- **Chart.js**: For responsive, animated data visualizations
+- **Tailwind CSS**: For utility-first styling with custom color palette
+- **Axios**: For AJAX requests to the API
+
+#### Design Highlights
+
+- **Responsive Layout**: Adapts to different screen sizes with a grid-based layout
+- **Card-based UI**: Information organized in distinct cards with subtle hover effects
+- **Custom Color Palette**: Dark theme with xfive-inspired red accents
+- **Micro-animations**: Subtle animations for loading states and interactions
+- **Accessible UI**: Clear contrast ratios and intuitive navigation
+
 ### Development Approach
 
 This project was developed using Test-Driven Development (TDD):
@@ -67,6 +96,9 @@ Test coverage includes:
 - Django 5.1
 - Django REST Framework
 - Poetry for dependency management
+- Alpine.js for reactive frontend
+- Chart.js for data visualization
+- Tailwind CSS for styling
 - Python's built-in CSV module for data processing
 - httpx for URL-based imports
 - pytest for comprehensive testing
@@ -291,6 +323,41 @@ The API includes interactive documentation available at:
 
 These interfaces provide a convenient way to explore the available endpoints, parameters, and response formats.
 
+## Dashboard Usage
+
+The application provides an interactive dashboard for data visualization and exploration at:
+
+- `/` or `/dashboard/` - Main dashboard interface
+
+### Dashboard Features
+
+#### Data Filtering
+- Filter by Year: Focus on specific years in the dataset
+- Filter by Age Group: View statistics for specific age ranges
+- Filter by Sex: Compare data between Male and Female categories
+- Filter by HDI Category: Analyze data across different Human Development Index categories
+- Reset Filters: Quickly clear all applied filters
+
+#### Data Visualization
+- Demographics by HDI Chart: Bar chart showing male/female breakdown by HDI category
+- Age Distribution Chart: Line chart visualizing population distribution across age groups
+- Statistics Panel: Quick overview of key metrics (total records, gender ratio, etc.)
+- Data Table: Paginated display of records matching current filters
+
+#### Data Management
+- Import from CSV: Upload local CSV files directly from the dashboard
+- Import from URL: Fetch CSV data from a remote URL
+- Database Cleaning: Option to reset the database (with confirmation)
+
+### Dashboard Design
+
+The dashboard features a modern dark theme with xfive-inspired styling:
+- Dark red/black color scheme with red accent colors
+- Distinct card-based UI with subtle gradient headers
+- Responsive layout that adapts to different screen sizes
+- Interactive elements with hover effects and focus states
+- Consistent typography using the Inter font family
+
 ## Development
 
 ### Running Tests
@@ -345,25 +412,31 @@ When contributing, please follow these guidelines:
 ## Project Structure
 
 ```
-xfive/                     # Main project directory
-├── data_statistics/       # Project configuration
-├── demographics/          # Main app for demographic data
-│   ├── models.py          # Data models
-│   ├── serializers.py     # DRF serializers
-│   ├── views.py           # API endpoints
-│   ├── importers.py       # CSV import functionality
-│   ├── management/        # Custom management commands
-│   │   └── commands/      # Contains import_demographics command
-├── data/                  # Storage for CSV files
-├── tests/                 # Project tests
-│   ├── conftest.py        # pytest configuration
-│   ├── test_models.py     # Model tests
+xfive/                      # Main project directory
+├── data_statistics/        # Project configuration
+├── demographics/           # Main app for demographic data
+│   ├── models.py           # Data models
+│   ├── serializers.py      # DRF serializers
+│   ├── views.py            # API endpoints
+│   ├── importers.py        # CSV import functionality
+│   ├── management/         # Custom management commands
+│   │   └── commands/       # Contains import_demographics command
+├── visualization/          # Frontend visualization app
+│   ├── views.py            # Dashboard views
+│   ├── urls.py             # URL routing
+│   ├── templates/          # HTML templates
+│   │   ├── base.html       # Base template with layout
+│   │   └── dashboard.html  # Dashboard implementation
+├── data/                   # Storage for CSV files
+├── tests/                  # Project tests
+│   ├── conftest.py         # pytest configuration
+│   ├── test_models.py      # Model tests
 │   ├── test_model_methods.py # Model method tests
-│   ├── test_csv_import.py # CSV import tests
-│   ├── fixtures/          # Test fixtures
-├── Makefile               # Common development commands
-├── pyproject.toml         # Project dependencies
-└── README.md              # This file
+│   ├── test_csv_import.py  # CSV import tests
+│   ├── fixtures/           # Test fixtures
+├── Makefile                # Common development commands
+├── pyproject.toml          # Project dependencies
+└── README.md               # This file
 ```
 
 ## Implementation Details
@@ -384,25 +457,26 @@ xfive/                     # Main project directory
 - **Duplicate Handling**: Update-or-create logic to handle repeated imports
 - **URL Support**: Direct import from CSO data portal URL
 
+### Frontend Implementation
+
+- **Responsive Design**: Mobile-first approach with responsive breakpoints
+- **Reactive UI**: Alpine.js for state management and reactive updates
+- **Optimized Charts**: Chart.js with optimized configurations for dark mode
+- **Accessible Controls**: Keyboard navigable and screen-reader friendly components
+- **Performance Optimization**: Minimal dependencies and efficient DOM updates
+- **Form Validation**: Client-side validation with clear error messages
+
 ### Error Handling
 
 - **Validation Errors**: Detailed logging of data validation issues
 - **Import Statistics**: Comprehensive reporting of import results
 - **Transactional Safety**: Database integrity protection through transactions
-
-## Next Steps
-
-Future enhancements for this project may include:
-
-- Frontend data visualization with interactive charts
-- Additional data sources integration
-- Export functionality to various formats (CSV, Excel, JSON)
-- Advanced analytics and statistical calculations
-- Caching for improved performance with large datasets
+- **User Feedback**: Flash messages and UI indicators for user actions
 
 ## Deliverables
 
 - Django models for demographic data
 - CSV import functionality
 - REST API with filtering and aggregation
-- Documentation for setup and usage
+- Frontend visualization dashboard
+- Comprehensive documentation

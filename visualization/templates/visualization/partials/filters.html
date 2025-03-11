@@ -1,0 +1,58 @@
+<!-- Filter Controls -->
+<div class="bg-white overflow-hidden shadow rounded-lg mb-6">
+  <div class="px-4 py-5 sm:px-6">
+    <h2 class="text-lg font-medium text-gray-900">Filter Data</h2>
+    <p class="mt-1 text-sm text-gray-500">Select criteria to filter the demographic data</p>
+  </div>
+  <div class="px-4 py-5 sm:p-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Year Filter -->
+      <div>
+        <label for="year-filter" class="block text-sm font-medium text-gray-700">Year</label>
+        <select id="year-filter" x-model="filters.year" @change="applyFilters()" 
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 text-sm">
+          <option value="">All Years</option>
+          <template x-for="year in availableYears" :key="year">
+            <option :value="year" x-text="year"></option>
+          </template>
+        </select>
+      </div>
+      
+      <!-- Age Group Filter -->
+      <div>
+        <label for="age-group-filter" class="block text-sm font-medium text-gray-700">Age Group</label>
+        <select id="age-group-filter" x-model="filters.ageGroup" @change="applyFilters()" 
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 text-sm">
+          <option value="">All Age Groups</option>
+          <template x-for="ageGroup in availableAgeGroups" :key="ageGroup">
+            <option :value="ageGroup" x-text="ageGroup"></option>
+          </template>
+        </select>
+      </div>
+      
+      <!-- Sex Filter -->
+      <div>
+        <label for="sex-filter" class="block text-sm font-medium text-gray-700">Sex</label>
+        <select id="sex-filter" x-model="filters.sex" @change="applyFilters()" 
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 text-sm">
+          <option value="">All</option>
+          <template x-for="sex in availableSexes" :key="sex">
+            <option :value="sex" x-text="sex"></option>
+          </template>
+        </select>
+      </div>
+      
+      <!-- HDI Filter -->
+      <div>
+        <label for="hdi-filter" class="block text-sm font-medium text-gray-700">HDI Category</label>
+        <select id="hdi-filter" x-model="filters.hdiCategory" @change="applyFilters()" 
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 text-sm">
+          <option value="">All HDI Categories</option>
+          <template x-for="hdiCategory in availableHdiCategories" :key="hdiCategory">
+            <option :value="hdiCategory" x-text="hdiCategory"></option>
+          </template>
+        </select>
+      </div>
+    </div>
+  </div>
+</div> 

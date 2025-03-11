@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "drf_yasg",
     # Local apps
     "demographics",
+    "visualization",
 ]
 
 MIDDLEWARE = [

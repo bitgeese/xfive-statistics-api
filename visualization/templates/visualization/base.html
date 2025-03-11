@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Demographics Dashboard{% endblock %}</title>
+  <!-- Inter font -->
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+  <!-- Tailwind CSS CDN - Note: For production, switch to proper Tailwind installation -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Alpine.js -->
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <!-- Axios -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <!-- Chart.js - Specific version without source map warnings -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <script>
+    // Disable Chart.js source map warnings
+    window.process = window.process || { env: { NODE_ENV: 'production' } };
+    // Extend Tailwind configuration for the xfive dark theme
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        fontFamily: {
+          sans: ['Inter var', 'sans-serif'],
+        },
+        extend: {
+          colors: {
+            // xfive inspired color palette (dark red/black theme)
+            linear: {
+              bg: '#0D0709',              // Darker black with hint of red
+              surface: '#131011',          // Slightly lighter black for surfaces
+              surfaceHover: '#221314',     // Dark red-tinted hover state
+              border: '#301617',           // Dark red border
+              borderFocus: '#471A1B',      // Brighter red border for focus
+              text: '#EEEFF1',             // Light text
+              textSecondary: '#A8A8AE',    // Secondary text
+              blue: '#364783',             // Muted blue for contrast
+              accent: '#DF2935',           // Primary red accent (xfive red)
+              accentHover: '#F54B56',      // Brighter red for hover states
+              purple: '#8A77E5',           // Keep purple for female data
+              green: '#26C986',            // Success color
+              yellow: '#FFBD2E',           // Warning color
+              red: '#F95858'               // Error color
+            }
+          },
+          backgroundImage: {
+            'gradient-xfive': 'linear-gradient(135deg, #5B0F14 0%, #1E0809 100%)', // Red to black gradient
+            'gradient-card': 'linear-gradient(180deg, rgba(54, 17, 21, 0.3) 0%, rgba(15, 7, 9, 0.2) 100%)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    [x-cloak] { display: none !important; }
+    
+    html { font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11'; }
+    
+    body {
+      background-image: linear-gradient(135deg, #2A0C0F 0%, #0D0709 100%);
+      background-attachment: fixed;
+    }
+    
+    .chart-container {
+      position: relative;
+      height: 400px;
+      width: 100%;
+    }
+    
+    /* Custom scrollbar for dark mode */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #131011;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #301617;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #DF2935;
+    }
+    
+    /* Blur effects */
+    .backdrop-blur {
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    
+    /* Micro-animations */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    
+    @keyframes slideUp {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .slide-up {
+      animation: slideUp 0.3s ease-out;
+    }
+    
+    /* Button hover effect */
+    .btn-hover-effect {
+      transition: all 0.2s ease;
+    }
+    
+    .btn-hover-effect:hover {
+      transform: translateY(-1px);
+    }
+
+    /* Sidebar section styling */
+    .sidebar-section {
+      position: relative;
+      padding: 12px 10px;
+      margin-bottom: 4px;
+    }
+
+    .sidebar-section:before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 100%;
+      background: rgba(48, 22, 23, 0.3);
+      border-radius: 6px;
+      z-index: -1;
+    }
+
+    /* Form focus effects */
+    .form-input-highlight:focus-within {
+      box-shadow: 0 0 0 1px rgba(223, 41, 53, 0.5);
+    }
+    
+    /* Card glow effect */
+    .card-glow {
+      box-shadow: 0 0 15px 0 rgba(223, 41, 53, 0.1);
+      transition: box-shadow 0.3s ease;
+    }
+    
+    .card-glow:hover {
+      box-shadow: 0 0 20px 0 rgba(223, 41, 53, 0.2);
+    }
+    
+    /* Assessment banner */
+    .assessment-banner {
+      background-image: linear-gradient(to right, #5B0F14, #DF2935, #5B0F14);
+      border-bottom: 1px solid #301617;
+      box-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
+      padding: 6px 0;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      color: white;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="h-full text-linear-text" style="font-family: 'Inter var', sans-serif;">
+  <!-- Assessment Banner -->
+  <div class="assessment-banner">
+    Django Developer Assessment Task by Maciej Janowski &bull; <a href="mailto:maciekjanowski42@icloud.com" class="hover:underline">maciekjanowski42@icloud.com</a>
+  </div>
+  
+  <!-- Inverted L-shape global chrome layout -->
+  <div class="flex h-full">
+    <!-- Left Sidebar -->
+    <div class="fixed inset-y-0 left-0 w-60 bg-linear-surface border-r border-linear-border overflow-y-auto" style="top: 33px;">
+      <div class="flex flex-col h-full">
+        <!-- Logo area -->
+        <div class="flex items-center h-14 px-4 border-b border-linear-border bg-gradient-xfive">
+          <div class="flex items-center">
+            <div class="h-6 w-6 rounded-full bg-gradient-to-r from-linear-accent to-linear-accent/75"></div>
+            <h1 class="ml-2 text-md font-medium">xfive</h1>
+          </div>
+        </div>
+        
+        <!-- Sidebar Navigation -->
+        <div class="flex-1 py-4 px-3 space-y-4">
+          <!-- Dashboard Link -->
+          <a href="{% url 'dashboard' %}" class="flex items-center px-3 py-2 rounded-md text-sm font-medium bg-linear-surfaceHover">
+            <svg class="mr-2 h-4 w-4 text-linear-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+            Dashboard
+          </a>
+          
+          <!-- Data Summary -->
+          <div class="sidebar-section">
+            <div class="text-xs font-medium text-linear-accent uppercase tracking-wider mb-3 px-2">Data Stats</div>
+            <div class="flex items-center text-sm text-linear-text py-1 px-2 rounded bg-linear-bg bg-opacity-50">
+              <svg class="mr-2 h-4 w-4 text-linear-textSecondary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <span>Records: <span class="font-medium text-linear-text">{{ total_records }}</span></span>
+            </div>
+          </div>
+          
+          <!-- Data Management Section in Sidebar -->
+          <div class="sidebar-section">
+            <div class="text-xs font-medium text-linear-accent uppercase tracking-wider mb-3 px-2">Import Data</div>
+            
+            <!-- Import from File -->
+            <div class="mb-4">
+              <form id="import-file-form" action="{% url 'import_file' %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <label for="file-import" class="block text-xs font-medium text-linear-text mb-2 flex items-center">
+                  <svg class="mr-1.5 h-3.5 w-3.5 text-linear-textSecondary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Import from CSV
+                </label>
+                <div class="flex items-center space-x-2">
+                  <div class="flex-1">
+                    <input id="file-import" name="file" type="file" accept=".csv" required
+                           class="w-full text-xs text-linear-text bg-linear-bg border border-linear-border rounded px-2 py-1">
+                  </div>
+                  <button type="submit" class="px-3 py-1.5 bg-linear-accent text-white text-xs font-medium rounded">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                  </button>
+                </div>
+              </form>
+            </div>
+            
+            <!-- Import from URL -->
+            <div class="mb-4">
+              <form id="import-url-form" action="{% url 'import_url' %}" method="POST">
+                {% csrf_token %}
+                <label for="url-import" class="block text-xs font-medium text-linear-text mb-2 flex items-center">
+                  <svg class="mr-1.5 h-3.5 w-3.5 text-linear-textSecondary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                  Import from URL
+                </label>
+                <div class="flex items-center space-x-2">
+                  <div class="flex-1 relative form-input-highlight">
+                    <input id="url-import" name="url" type="url" placeholder="https://..." required
+                        class="w-full px-3 py-1.5 bg-linear-bg border border-linear-borderFocus rounded text-xs text-linear-text placeholder-linear-textSecondary focus:outline-none focus:border-linear-accent">
+                  </div>
+                  <button type="submit" class="px-3 py-1.5 bg-linear-accent hover:bg-linear-accentHover text-white text-xs font-medium rounded transition-colors focus:outline-none btn-hover-effect">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+          
+          <!-- Database Management -->
+          <div class="sidebar-section">
+            <div class="text-xs font-medium text-linear-accent uppercase tracking-wider mb-3 px-2">Database</div>
+            
+            <!-- Clean Database -->
+            <form id="clean-database-form" action="{% url 'clean_database' %}" method="POST">
+              {% csrf_token %}
+              <button type="submit"
+                    class="w-full px-3 py-2 bg-linear-bg hover:bg-opacity-70 text-linear-red hover:text-linear-red font-medium rounded border border-linear-red border-opacity-30 hover:border-opacity-100 transition-colors focus:outline-none btn-hover-effect text-xs"
+                    onclick="return confirm('Are you sure you want to delete all demographic data? This action cannot be undone.')">
+                <div class="flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Clean Database
+                </div>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="flex-1 ml-60" style="margin-top: 33px;">
+      <!-- Top bar -->
+      <div class="h-14 bg-gradient-xfive border-b border-linear-border sticky top-0 z-10 backdrop-blur" style="top: 33px;">
+        <div class="flex items-center justify-between h-full px-4">
+          <h1 class="text-sm font-medium">{% block header_title %}Dashboard{% endblock %}</h1>
+          
+          <div class="flex items-center space-x-2">
+            <!-- Flash Messages Indicator -->
+            {% if messages %}
+            <div id="messages-indicator" class="relative">
+              <button id="show-messages" class="p-1.5 text-linear-textSecondary hover:text-linear-text rounded-md hover:bg-linear-surfaceHover focus:outline-none">
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <span class="absolute top-0 right-0 block h-1.5 w-1.5 rounded-full bg-linear-red"></span>
+              </button>
+            </div>
+            {% endif %}
+            
+            <!-- Help Button -->
+            <button class="p-1.5 text-linear-textSecondary hover:text-linear-text rounded-md hover:bg-linear-surfaceHover focus:outline-none">
+              <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Flash Messages Dropdown -->
+      {% if messages %}
+      <div id="messages-dropdown" class="hidden fixed right-4 top-12 z-50 w-80 mt-2 bg-linear-surface border border-linear-border rounded-lg shadow-xl overflow-hidden fade-in" style="top: 45px;">
+        <div class="p-3 bg-linear-surface border-b border-linear-border">
+          <h3 class="text-sm font-medium">Notifications</h3>
+        </div>
+        <div class="max-h-80 overflow-y-auto">
+          {% for message in messages %}
+          <div class="p-3 {% if message.tags == 'error' %}border-l-2 border-linear-red{% elif message.tags == 'success' %}border-l-2 border-linear-green{% else %}border-l-2 border-linear-accent{% endif %} border-b border-linear-border slide-up">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                {% if message.tags == 'error' %}
+                <svg class="h-4 w-4 text-linear-red" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+                {% elif message.tags == 'success' %}
+                <svg class="h-4 w-4 text-linear-green" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                </svg>
+                {% else %}
+                <svg class="h-4 w-4 text-linear-accent" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                </svg>
+                {% endif %}
+              </div>
+              <div class="ml-3">
+                <p class="text-sm text-linear-text">{{ message }}</p>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const messagesIndicator = document.getElementById('messages-indicator');
+          const messagesDropdown = document.getElementById('messages-dropdown');
+          const showMessages = document.getElementById('show-messages');
+          
+          if (showMessages && messagesDropdown) {
+            showMessages.addEventListener('click', () => {
+              messagesDropdown.classList.toggle('hidden');
+            });
+            
+            // Close when clicking outside
+            document.addEventListener('click', (event) => {
+              if (!messagesIndicator.contains(event.target) && !messagesDropdown.contains(event.target)) {
+                messagesDropdown.classList.add('hidden');
+              }
+            });
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+              const indicator = document.querySelector('#messages-indicator span');
+              if (indicator) indicator.remove();
+            }, 5000);
+          }
+        });
+      </script>
+      {% endif %}
+      
+      <!-- Page Content -->
+      <div class="p-4">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+
+  {% block scripts %}
+  <script>
+    // No custom file input handling needed anymore
+  </script>
+  {% endblock %}
+</body>
+</html> 

@@ -1,0 +1,67 @@
+<!-- Data Management Section -->
+<div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
+  <div class="px-4 py-5 sm:px-6">
+    <h2 class="text-lg font-medium text-gray-900">Data Management</h2>
+    <p class="mt-1 text-sm text-gray-500">Import Data and manage the database</p>
+  </div>
+  
+  <!-- Import from file -->
+  <div class="px-4 py-5 sm:p-6">
+    <h3 class="text-base font-medium text-gray-900">Import from CSV File</h3>
+    <div class="mt-2 max-w-xl text-sm text-gray-500">
+      <p>Upload a CSV file containing demographic data.</p>
+    </div>
+    <form id="import-file-form" action="{% url 'import_file' %}" method="POST" enctype="multipart/form-data" class="mt-5">
+      {% csrf_token %}
+      <div class="flex items-center space-x-4">
+        <div class="flex-1">
+          <label for="file-import" class="sr-only">Choose file</label>
+          <input id="file-import" name="file" type="file" accept=".csv" required
+                 class="block w-full px-3 py-2 border border-gray-300 shadow-sm rounded-md text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <button type="submit"
+                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          Import File
+        </button>
+      </div>
+    </form>
+  </div>
+  
+  <!-- Import from URL -->
+  <div class="px-4 py-5 sm:p-6">
+    <h3 class="text-base font-medium text-gray-900">Import from URL</h3>
+    <div class="mt-2 max-w-xl text-sm text-gray-500">
+      <p>Provide a URL to a CSV file containing demographic data.</p>
+    </div>
+    <form id="import-url-form" action="{% url 'import_url' %}" method="POST" class="mt-5">
+      {% csrf_token %}
+      <div class="flex items-center space-x-4">
+        <div class="flex-1">
+          <label for="url-import" class="sr-only">URL</label>
+          <input id="url-import" name="url" type="url" placeholder="https://example.com/data.csv" required
+                 class="block w-full px-3 py-2 border border-gray-300 shadow-sm rounded-md text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <button type="submit"
+                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          Import URL
+        </button>
+      </div>
+    </form>
+  </div>
+  
+  <!-- Clean database -->
+  <div class="px-4 py-5 sm:p-6 bg-gray-50">
+    <h3 class="text-base font-medium text-gray-900">Clean Database</h3>
+    <div class="mt-2 max-w-xl text-sm text-gray-500">
+      <p>Remove all demographic data from the database. This action cannot be undone.</p>
+    </div>
+    <form id="clean-database-form" action="{% url 'clean_database' %}" method="POST" class="mt-5">
+      {% csrf_token %}
+      <button type="submit"
+              class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              onclick="return confirm('Are you sure you want to delete all demographic data? This action cannot be undone.')">
+        Clean Database
+      </button>
+    </form>
+  </div>
+</div> 
