@@ -49,4 +49,4 @@ def hd_index_data():
         {"name": "Medium Human Development Index (HDI)", "is_aggregate": False},
         {"name": "Low Human Development Index (HDI)", "is_aggregate": False},
         {"name": "Very High Human Development Index (HDI)", "is_aggregate": False},
-    ] 
+    ]
