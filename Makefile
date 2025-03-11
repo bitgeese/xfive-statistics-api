@@ -1,4 +1,4 @@
-.PHONY: help install migrate dev-server test lint format import-data import-url show-stats clean create-superuser
+.PHONY: help install migrate dev-server test test-cov lint format import-data import-url show-stats clean create-superuser
 
 PYTHON = poetry run python
 MANAGE = $(PYTHON) manage.py
@@ -9,6 +9,7 @@ help:
 	@echo "  make migrate         - Run database migrations"
 	@echo "  make dev-server      - Run development server"
 	@echo "  make test            - Run tests"
+	@echo "  make test-cov        - Run tests with coverage report in console"
 	@echo "  make lint            - Check code with Ruff"
 	@echo "  make format          - Format code with Ruff"
 	@echo "  make import-data     - Import CSV data from file (specify CSV=path/to/file.csv)"
@@ -33,6 +34,10 @@ dev-server:
 test:
 	@echo "Running tests..."
 	poetry run pytest
+
+test-cov:
+	@echo "Running tests with coverage..."
+	poetry run pytest --cov=demographics --cov=visualization --cov-report=term
 
 lint:
 	@echo "Linting code..."

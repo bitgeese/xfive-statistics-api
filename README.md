@@ -116,3 +116,30 @@ Features:
 - Filtering options
 - Data import interface
 - Statistics overview
+
+## Development
+
+### Running Tests
+
+Execute the test suite:
+```
+make test
+```
+
+Generate code coverage report in the console:
+```
+make test-cov
+```
+This will display coverage statistics for each module directly in your terminal.
+
+### Code Quality
+
+Check code for style issues and potential problems:
+```
+make lint
+```
+
+Format code automatically:
+```
+make format
+```
